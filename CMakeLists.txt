@@ -15,5 +15,5 @@ target_sources(pico-hid-from-uart PRIVATE
         usb_descriptors.c
         )
         
-target_link_libraries(pico-hid-from-uart PRIVATE pico_stdlib tinyusb_device tinyusb_board)
+target_link_libraries(pico-hid-from-uart PRIVATE pico_stdlib tinyusb_device tinyusb_board hardware_uart)
 pico_add_extra_outputs(pico-hid-from-uart)

@@ -8,12 +8,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "tusb.h"
+#include "hardware/uart.h"
+#include "hardware/gpio.h"
 
 
 //--------------------------------------------------------------------+
 // MACRO CONSTANT TYPEDEF PROTYPES
 //--------------------------------------------------------------------+
 
+#define UART_ID uart1
+#define BAUD_RATE 115200
+
+#define UART_TX_PIN 4
+#define UART_RX_PIN 5
 
 
 
@@ -34,6 +41,12 @@ struct report
 int main(void)
 {
   tusb_init();
+
+  uart_init(UART_ID, BAUD_RATE);
+  gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+  gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+  // TODO Setup DMA to read report from UART
 
   while (1)
   {
@@ -103,14 +116,9 @@ void tud_hid_set_report_cb(uint8_t index, uint8_t report_id, hid_report_type_t r
 //--------------------------------------------------------------------+
 void hid_task(void)
 {
-  // FIXME Is data available on UART ?
-  /*if (pio_secondary_available(&secondary)) {
-    // Read byte
-    uint8_t rx;
-    pio_secondary_read8(&secondary, &rx, 1);
-    
-    // Send HID report
-    report.buttons = rx;
+
+    if (uart_is_readable(UART_ID)) {
+      uart_read_blocking(UART_ID, &report.buttons, 1);
 
     // Remote wakeup
     if (tud_suspended())
@@ -125,20 +133,4 @@ void hid_task(void)
         tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
     }
   }
-  */
-
-    report.buttons++;
-
-    // Remote wakeup
-    if (tud_suspended())
-    {
-        // Wake up host if we are in suspend mode
-        // and REMOTE_WAKEUP feature is enabled by host
-        tud_remote_wakeup();
-    }
-
-    if (tud_hid_ready())
-    {
-        tud_hid_n_report(0x00, 0x01, &report, sizeof(report));
-    }
 }
